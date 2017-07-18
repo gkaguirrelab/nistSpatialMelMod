@@ -1,6 +1,11 @@
 function [ weight ] = nistSpatialMelMod_createAnnulus( eccentricityDeg, radiusInnerEdgeAnnulusDeg, radiusOuterEdgeAnnulusDeg, widthHalfCosineSmoothDeg )
-%UNTITLED4 Summary of this function goes here
-%   Detailed explanation goes here
+% function [ weight ] = nistSpatialMelMod_createAnnulus( eccentricityDeg, radiusInnerEdgeAnnulusDeg, radiusOuterEdgeAnnulusDeg, widthHalfCosineSmoothDeg )
+%
+% Implements an annulus with half-cosine edges, under the control of the
+% passed parameters. The output is the weight (from 0 to 1) to be applied
+% to stimulus contrast at a point on the display corresponding to the
+% passed eccentricityDeg.
+%
 
 if eccentricityDeg < radiusInnerEdgeAnnulusDeg
     weight = 0;
