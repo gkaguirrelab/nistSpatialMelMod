@@ -12,7 +12,7 @@
 %
 
 %% Housekeeping
-clear all
+clearvars
 close all
 
 
@@ -132,4 +132,6 @@ for tt = 1:length(temporalSupport)
         imshow( thisFrameTargetedWeberContrast, [-maxContrast maxContrast] );
     end
     
-end
+end % loop over temporalSupport frames
+
+

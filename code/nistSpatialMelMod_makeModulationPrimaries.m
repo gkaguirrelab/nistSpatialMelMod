@@ -1,20 +1,19 @@
 function [ backgroundPrimary, modulationPrimary, B_primary, ambientSpd, T_receptors ] = nistSpatialMelMod_makeModulationPrimaries( calibrationFileName, varargin )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
-
-
+% function [ backgroundPrimary, modulationPrimary, B_primary, ambientSpd, T_receptors ] = nistSpatialMelMod_makeModulationPrimaries( calibrationFileName, varargin )
+%
+%  Returns primaries and associated variables that may be used to compute
+%  spectral modulations for the purpose of silent substitution.
+%
+%  Much of the code is derived from ReceptorIsolateDemo.m within the
+%  SilentSubstitutionToolbox
+%
 % INPUTS:
 %   calibrationFileName: full path to a .mat file that contains a
 %       calibration of the display device
 %
-
-% OPTIONAL - photoreceptor classes and modulation direction
-%   whichReceptorsToTarget - create contrast on these photoreceptors
-%	whichReceptorsToIgnore - do not care if we silence or stimulate these
-%       (All remaining photoreceptors are silenced)
-%   desiredContrast - vector of contrast to be sought for each of the 
-%       targeted receptor classes. Set to empty to maximize contrast.
-%        
+% OPTIONAL - I/O and flow control
+%   verbose - true or false
+%
 % OPTIONAL - device parameters:
 %   primaryHeadRoom -  This parameter enforces a constraint that we don't
 %       go right to the edge of the gamut.  The head room parameter is
@@ -26,10 +25,23 @@ function [ backgroundPrimary, modulationPrimary, B_primary, ambientSpd, T_recept
 %       overall power of the viewed light as well as on the wavelength
 %       sampling step.
 %
+% OPTIONAL - photoreceptor classes and modulation direction
+%   photoreceptorClasses - A cell array of photoreceptor classes. This is
+%       passed to the function GetHumanPhotoreceptorSS, which should know
+%       what to do with it.
+%   whichReceptorsToTarget - Vector of indices to photoreceptorClasses that
+%       identify photoreceptors to stimulate
+%	whichReceptorsToIgnore - Vector of indices to photoreceptorClasses that
+%       identify photoreceptors to ignore
+%       (All remaining photoreceptors are silenced)
+%   desiredContrast - vector of contrast to be sought for each of the 
+%       targeted receptor classes. Set to empty to maximize contrast.
+%
 % OPTIONAL - observer and physiologic parameters:
-%   observerAgeInYears -
-%   fieldSizeDegrees -
-%   pupilDiameterMm -
+%   observerAgeInYears - impacts spectral sensitivity through lens density
+%   fieldSizeDegrees - impacts spectral sensitivity as a consequence of
+%       macular pigment
+%   pupilDiameterMm - impacts retinal irradiance and thus bleaching
 %   vesselOxyFraction - Assumed fraction of oxygenated hemoglobin within
 %       retinal blood vessels, used for calculation of spectral sensitivity
 %       of penumbral cones
@@ -49,7 +61,6 @@ p.addParameter('verbose',false,@islogical);
 % Optional - device parameters
 p.addParameter('primaryHeadRoom',0.02,@isnumeric);
 p.addParameter('maxPowerDiff',10^-1.5,@isnumeric);
-p.addParameter('whichPrimaries','OneLight',@ischar);
 
 % Optional - photoreceptor classes and modulation direction
 p.addParameter('photoreceptorClasses', ...
