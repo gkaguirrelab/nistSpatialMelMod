@@ -81,7 +81,7 @@ backgroundSPD = B_primary*backgroundPrimaries;
 % for spatially drifting gratings, rotating gratings, etc.
 temporalSupport = 0 : 1000 / gratingFramesPerSec : (1/gratingContrastModulateTemporalFreqHz)*1000 - 1000 / gratingFramesPerSec;
 temporalSupportRads = (temporalSupport / ((1/gratingContrastModulateTemporalFreqHz)*1000)) * 2 * pi;
-temporalContrastModulation = sin(temporalSupportRads);
+temporalContrastModulation = cos(temporalSupportRads);
 
 %% Create the spatial stimulus matrix
 % Obtain the distance from fixation (assumed to be in the center of the
@@ -98,7 +98,7 @@ returnMaskWeight = @(x) nistSpatialMelMod_createAnnulus(x,radiusInnerEdgeAnnulus
 spatialWeightingMask = arrayfun(returnMaskWeight, distanceFromFixationDeg);
 
 % Loop over the temporal support and obtain the SPD at each pixel
-for tt = round(length(temporalSupport)/4):length(temporalSupport)
+for tt = 1:length(temporalSupport)
     
     % Create 2D sinusoidal grating. This remains in the loop to allow for 
     % future modifications in which we vary some aspect of the grating over
@@ -132,7 +132,7 @@ for tt = round(length(temporalSupport)/4):length(temporalSupport)
     thisFrameTargetedReceptors = reshape(squeeze(thisFrameReceptorsVec(:,targetedReceptor)),displayPixelResolution(1), displayPixelResolution(2));
     thisFrameTargetedWeberContrast = (thisFrameTargetedReceptors - backgroundReceptors(targetedReceptor)) ./ backgroundReceptors(targetedReceptor);
     
-    % Display the resulting contrast image and the spectrum from a point in
+    % Display the resulting contrast image and the spectrum for a point in
     % the image
     subplot(figPanelA);
     imshow( thisFrameTargetedWeberContrast, [-maxContrast maxContrast] );
@@ -140,12 +140,13 @@ for tt = round(length(temporalSupport)/4):length(temporalSupport)
     axis off; axis image;
     hold on
     text(pixelCoordsToPlot(1),pixelCoordsToPlot(2),'X','HorizontalAlignment','center','VerticalAlignment','middle')
+    title(['Relative Weber contrast [\pm' num2str(maxContrast) ']']);
     hold off
     subplot(figPanelB);
     plot(wavelengthSupport,backgroundSPD,'k','LineWidth',2);
     hold on
     plot(wavelengthSupport,thisFrameSPDVec(pixelIdxToPlot,:),'r','LineWidth',2);
-    title('Spectrum (red) for pixel indicated by black x');
+    title('Spectrum (red) at the X');
     xlim([380 780]);
     ylim([0 0.1]);
     xlabel('Wavelength');
@@ -157,5 +158,6 @@ for tt = round(length(temporalSupport)/4):length(temporalSupport)
 end % loop over temporalSupport frames
 
 % For the last frame in memory, reshape into a 3D array which has the
-% dimensions of pixelsX, pixelsY, and wavelengths
+% dimensions of pixelsX, pixelsY, and wavelengths. This is an example frame
+% that we could send to Joe Rice to try out.
 thisFrameSPD = reshape(thisFrameSPDVec, displayPixelResolution(1), displayPixelResolution(2), length(backgroundSPD));
