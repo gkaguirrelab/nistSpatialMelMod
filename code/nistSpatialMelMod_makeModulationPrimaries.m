@@ -1,4 +1,4 @@
-function [ backgroundPrimary, modulationPrimary, B_primary, ambientSpd, T_receptors ] = nistSpatialMelMod_makeModulationPrimaries( calibrationFileName, varargin )
+function [ backgroundPrimary, modulationPrimary, B_primary, ambientSpd, T_receptors, wavelengthSupport ] = nistSpatialMelMod_makeModulationPrimaries( calibrationFileName, varargin )
 % function [ backgroundPrimary, modulationPrimary, B_primary, ambientSpd, T_receptors ] = nistSpatialMelMod_makeModulationPrimaries( calibrationFileName, varargin )
 %
 %  Returns primaries and associated variables that may be used to compute
@@ -97,6 +97,11 @@ cal = LoadCalFile(char(tmpSplitPath(end)),[],char(join(tmpSplitPath(1:end-1),fil
 S = cal.describe.S;
 B_primary = cal.computed.pr650M;
 ambientSpd = cal.computed.pr650MeanDark;
+
+% S contains a specification of wavelength support in the form of:
+%   [start delta n]. The psychtoolbox function SToWLs expands this to a
+%   support vector of wavelengths.
+wavelengthSupport = SToWls(S);
 
 % Half on in OneLight primary space
 backgroundPrimary = 0.5*ones(size(B_primary,2),1);

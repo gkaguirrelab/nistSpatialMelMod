@@ -42,6 +42,8 @@ targetedReceptor = 4; % this is melanopsin
 codeBaseDir = tbLocateProject('nistSpatialMelMod','verbose',false);
 calibrationFileName = fullfile(codeBaseDir, 'demoOneLightCalFile', 'OneLightDemoCal.mat');
 
+% Pick a pixel to plot the spectrum
+pixelCoordsToPlot = [100 50];
 
 %% Setup
 % Derive some values from these inputs
@@ -53,12 +55,20 @@ else
     pixelsPerDeg=mean(pixelsPerDeg);
 end
 
+pixelIdxToPlot=sub2ind(displayPixelResolution,pixelCoordsToPlot(1),pixelCoordsToPlot(2));
+
+% Prepare a figure
+figure
+figPanelA=subplot(1,2,1);
+figPanelB=subplot(1,2,2);
+
+
 
 %% Obtain the primaries and associated variables
 % The default settings of the called function provide melanopsin-directed
 % stimulation while silencing the cones, but ignoring the rods and the
 % penumbral cones.
-[ backgroundPrimaries, maxPositivePrimaries, B_primary, ambientSpd, T_receptors ] = ...
+[ backgroundPrimaries, maxPositivePrimaries, B_primary, ambientSpd, T_receptors, wavelengthSupport ] = ...
     nistSpatialMelMod_makeModulationPrimaries( calibrationFileName, 'desiredContrast',maxContrast);
 
 % Obtain the SPDs
@@ -88,7 +98,7 @@ returnMaskWeight = @(x) nistSpatialMelMod_createAnnulus(x,radiusInnerEdgeAnnulus
 spatialWeightingMask = arrayfun(returnMaskWeight, distanceFromFixationDeg);
 
 % Loop over the temporal support and obtain the SPD at each pixel
-for tt = 1:length(temporalSupport)
+for tt = round(length(temporalSupport)/4):length(temporalSupport)
     
     % Create 2D sinusoidal grating. This remains in the loop to allow for 
     % future modifications in which we vary some aspect of the grating over
@@ -122,16 +132,30 @@ for tt = 1:length(temporalSupport)
     thisFrameTargetedReceptors = reshape(squeeze(thisFrameReceptorsVec(:,targetedReceptor)),displayPixelResolution(1), displayPixelResolution(2));
     thisFrameTargetedWeberContrast = (thisFrameTargetedReceptors - backgroundReceptors(targetedReceptor)) ./ backgroundReceptors(targetedReceptor);
     
-    % Display the resulting contrast image
-    if tt==1
-        figure
-        imshow( thisFrameTargetedWeberContrast, [-maxContrast maxContrast] );
-        colormap gray(256);
-        axis off; axis image;
-    else
-        imshow( thisFrameTargetedWeberContrast, [-maxContrast maxContrast] );
-    end
+    % Display the resulting contrast image and the spectrum from a point in
+    % the image
+    subplot(figPanelA);
+    imshow( thisFrameTargetedWeberContrast, [-maxContrast maxContrast] );
+    colormap gray(256);
+    axis off; axis image;
+    hold on
+    text(pixelCoordsToPlot(1),pixelCoordsToPlot(2),'X','HorizontalAlignment','center','VerticalAlignment','middle')
+    hold off
+    subplot(figPanelB);
+    plot(wavelengthSupport,backgroundSPD,'k','LineWidth',2);
+    hold on
+    plot(wavelengthSupport,thisFrameSPDVec(pixelIdxToPlot,:),'r','LineWidth',2);
+    title('Spectrum (red) for pixel indicated by black x');
+    xlim([380 780]);
+    ylim([0 0.1]);
+    xlabel('Wavelength');
+    ylabel('Power');
+    pbaspect([1 1 1]);
+    hold off
+    drawnow
     
 end % loop over temporalSupport frames
 
-
+% For the last frame in memory, reshape into a 3D array which has the
+% dimensions of pixelsX, pixelsY, and wavelengths
+thisFrameSPD = reshape(thisFrameSPDVec, displayPixelResolution(1), displayPixelResolution(2), length(backgroundSPD));
