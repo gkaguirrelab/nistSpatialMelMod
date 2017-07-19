@@ -55,13 +55,13 @@ else
     pixelsPerDeg=mean(pixelsPerDeg);
 end
 
+% Get the linear index for the pixel we will later plot
 pixelIdxToPlot=sub2ind(displayPixelResolution,pixelCoordsToPlot(1),pixelCoordsToPlot(2));
 
 % Prepare a figure
 figure
 figPanelA=subplot(1,2,1);
 figPanelB=subplot(1,2,2);
-
 
 
 %% Obtain the primaries and associated variables
