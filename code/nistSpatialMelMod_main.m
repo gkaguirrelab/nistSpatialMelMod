@@ -90,7 +90,7 @@ spatialWeightingMask = arrayfun(returnMaskWeight, distanceFromFixationDeg);
 % Loop over the temporal support and obtain the SPD at each pixel
 for tt = 1:length(temporalSupport)
     
-    % Create 2D sinusoidal grating. This remains in the loop fo allow for 
+    % Create 2D sinusoidal grating. This remains in the loop to allow for 
     % future modifications in which we vary some aspect of the grating over
     % time (e.g., orientation, phase, spatial frequency)
     sinusoidalGrating = maxContrast * temporalContrastModulation(tt) * ...
@@ -100,7 +100,7 @@ for tt = 1:length(temporalSupport)
         gratingOrientationDeg, ...
         gratingSpatialPhaseDeg);
     
-    % Compute the called-for contrast ipon the targeted photoreceptor at
+    % Compute the called-for contrast upon the targeted photoreceptor at
     % each point of the display
     thisFrameContrastRelativeToMax = ...
         maxContrast * temporalContrastModulation(tt) * sinusoidalGrating .*spatialWeightingMask';
