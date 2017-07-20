@@ -183,7 +183,7 @@ for tt = 1:length(temporalSupport)
     title('Contrast by receptor at X');
     ylim([-0.5 0.5]);
     xlim([0 5]);
-    set(gca,'XTickLabel',{'L','M','S','M'})
+    set(gca,'XTickLabel',{'L','M','S','Mel'})
     xlabel('Photoreceptor class');
     ylabel('Weber contrast');
     pbaspect([1 displayPixelResolution(1)/displayPixelResolution(2) 1]);
@@ -205,6 +205,6 @@ end
 % For the last frame in memory, reshape into a 3D array which has the
 % dimensions of pixelsX, pixelsY, and wavelengths. Save out this and its
 % corresponding wavelength support
-thisFrameSPD = reshape(thisFrameSPDVec, displayPixelResolution(1), displayPixelResolution(2), length(backgroundSPD));
-save(outputSPDMatrixFileName,'thisFrameSPD');
+exampleFrameSPD = reshape(thisFrameSPDVec, displayPixelResolution(1), displayPixelResolution(2), length(backgroundSPD));
+save(outputSPDMatrixFileName,'exampleFrameSPD');
 save(outputSPDWavelengthSupportFileName,'wavelengthSupport');
