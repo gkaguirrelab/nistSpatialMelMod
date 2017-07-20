@@ -16,13 +16,16 @@ clearvars
 close all
 
 
+% Display, I/O, and flow control parameters
+
+
 %% Hardcoded parameters
 % Define the spatial properties of the display and observer
 displayPixelResolution = [200 200];
 dispaySizeMeters = displayPixelResolution / 500;
 observerDistanceMeters = 1.0;
 
-% Define the spatial properties of the stimulis
+% Define the spatial properties of the stimulus
 radiusInnerEdgeAnnulusDeg = 2.5;
 radiusOuterEdgeAnnulusDeg = 10;
 widthHalfCosineSmoothDeg = 2;
@@ -30,7 +33,7 @@ gratingSpatialFreqHz = .2;
 gratingSpatialPhaseDeg = 0;
 gratingOrientationDeg = 45;
 
-% Define the temporal properties of the stimulis
+% Define the temporal properties of the stimulus
 gratingContrastModulateTemporalFreqHz = 0.1;
 gratingFramesPerSec = 10;
 
@@ -60,8 +63,9 @@ pixelIdxToPlot=sub2ind(displayPixelResolution,pixelCoordsToPlot(1),pixelCoordsTo
 
 % Prepare a figure
 figure
-figPanelA=subplot(1,2,1);
-figPanelB=subplot(1,2,2);
+figPanelA=subplot(1,3,1);
+figPanelB=subplot(1,3,2);
+figPanelC=subplot(1,3,3);
 
 
 %% Obtain the primaries and associated variables
@@ -132,8 +136,11 @@ for tt = 1:length(temporalSupport)
     thisFrameTargetedReceptors = reshape(squeeze(thisFrameReceptorsVec(:,targetedReceptor)),displayPixelResolution(1), displayPixelResolution(2));
     thisFrameTargetedWeberContrast = (thisFrameTargetedReceptors - backgroundReceptors(targetedReceptor)) ./ backgroundReceptors(targetedReceptor);
     
-    % Display the resulting contrast image and the spectrum for a point in
-    % the image
+    % At a single pixel, calculate the contrast on each photoreceptor
+    thisFramePlotPixelAllReceptorsWeberContrast = (thisFrameReceptorsVec(pixelIdxToPlot,:)-backgroundReceptors')./backgroundReceptors';
+    
+    % Make and update a figure, which we will save as a movie
+    % Panel A -- the spatial contrast image for melanopsin
     subplot(figPanelA);
     imshow( thisFrameTargetedWeberContrast, [-maxContrast maxContrast] );
     colormap gray(256);
@@ -142,18 +149,36 @@ for tt = 1:length(temporalSupport)
     text(pixelCoordsToPlot(1),pixelCoordsToPlot(2),'X','HorizontalAlignment','center','VerticalAlignment','middle')
     title(['Relative Weber contrast [\pm' num2str(maxContrast) ']']);
     hold off
+    % Panel B -- The spectrum at a point on the display
     subplot(figPanelB);
     plot(wavelengthSupport,backgroundSPD,'k','LineWidth',2);
     hold on
     plot(wavelengthSupport,thisFrameSPDVec(pixelIdxToPlot,:),'r','LineWidth',2);
-    title('Spectrum (red) at the X');
+    title('Spectrum (red) at X');
     xlim([380 780]);
     ylim([0 0.1]);
     xlabel('Wavelength');
     ylabel('Power');
     pbaspect([1 1 1]);
     hold off
+    % Panel C -- a column plot of contrasts at a point on the display
+    subplot(figPanelC);
+    bar(thisFramePlotPixelAllReceptorsWeberContrast(1:4));
+    hold on
+    bar(1,thisFramePlotPixelAllReceptorsWeberContrast(1),'r');
+    bar(2,thisFramePlotPixelAllReceptorsWeberContrast(2),'g');
+    bar(3,thisFramePlotPixelAllReceptorsWeberContrast(3),'b');
+    bar(4,thisFramePlotPixelAllReceptorsWeberContrast(4),'c');
+    title('Contrast by receptor at X');
+    ylim([-0.5 0.5]);
+    xlim([0 5]);
+    set(gca,'XTickLabel',{'L','M','S','M'})
+    xlabel('Photoreceptor class');
+    ylabel('Weber contrast');
+    pbaspect([1 1 1]);
+    hold off
     drawnow
+    
     
 end % loop over temporalSupport frames
 
