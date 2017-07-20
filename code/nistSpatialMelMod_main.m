@@ -17,17 +17,20 @@ close all
 
 
 % Display, I/O, and flow control parameters
+outputMovieFileName = '~/Desktop/nistSpatialMelMod_Movie.mp4';
+outputSPDMatrixFileName = '~/Desktop/nistSpatialMelMod_SPDMatrix.mat';
+outputSPDWavelengthSupportFileName = '~/Desktop/nistSpatialMelMod_WavelengthSupport.mat';
 
 
 %% Hardcoded parameters
 % Define the spatial properties of the display and observer
-displayPixelResolution = [200 200];
-dispaySizeMeters = displayPixelResolution / 500;
+displayPixelResolution = [192 256];
+dispaySizeMeters = [0.5 0.666];
 observerDistanceMeters = 1.0;
 
 % Define the spatial properties of the stimulus
 radiusInnerEdgeAnnulusDeg = 2.5;
-radiusOuterEdgeAnnulusDeg = 10;
+radiusOuterEdgeAnnulusDeg = 12.5;
 widthHalfCosineSmoothDeg = 2;
 gratingSpatialFreqHz = .2;
 gratingSpatialPhaseDeg = 0;
@@ -46,7 +49,7 @@ codeBaseDir = tbLocateProject('nistSpatialMelMod','verbose',false);
 calibrationFileName = fullfile(codeBaseDir, 'demoOneLightCalFile', 'OneLightDemoCal.mat');
 
 % Pick a pixel to plot the spectrum
-pixelCoordsToPlot = [100 50];
+pixelCoordsToPlot = [round(displayPixelResolution(2)*0.5) round(displayPixelResolution(1)*0.25)];
 
 %% Setup
 % Derive some values from these inputs
@@ -59,14 +62,22 @@ else
 end
 
 % Get the linear index for the pixel we will later plot
-pixelIdxToPlot=sub2ind(displayPixelResolution,pixelCoordsToPlot(1),pixelCoordsToPlot(2));
+pixelIdxToPlot=sub2ind(displayPixelResolution,pixelCoordsToPlot(2),pixelCoordsToPlot(1));
 
 % Prepare a figure
-figure
+figHandle=figure;
 figPanelA=subplot(1,3,1);
 figPanelB=subplot(1,3,2);
 figPanelC=subplot(1,3,3);
 
+% Open an avi file for saving if a filename has been given
+if ~isempty(outputMovieFileName)
+    videoOutHandle = VideoWriter(outputMovieFileName,'MPEG-4');
+    videoOutHandle.FrameRate = gratingFramesPerSec;
+    videoOutHandle.Quality = 100;
+    open(videoOutHandle);
+end
+    
 
 %% Obtain the primaries and associated variables
 % The default settings of the called function provide melanopsin-directed
@@ -159,7 +170,7 @@ for tt = 1:length(temporalSupport)
     ylim([0 0.1]);
     xlabel('Wavelength');
     ylabel('Power');
-    pbaspect([1 1 1]);
+    pbaspect([1 displayPixelResolution(1)/displayPixelResolution(2) 1]);
     hold off
     % Panel C -- a column plot of contrasts at a point on the display
     subplot(figPanelC);
@@ -175,14 +186,25 @@ for tt = 1:length(temporalSupport)
     set(gca,'XTickLabel',{'L','M','S','M'})
     xlabel('Photoreceptor class');
     ylabel('Weber contrast');
-    pbaspect([1 1 1]);
+    pbaspect([1 displayPixelResolution(1)/displayPixelResolution(2) 1]);
     hold off
     drawnow
     
+    if ~isempty(outputMovieFileName)
+        videoFrame=getframe(figHandle);
+        writeVideo(videoOutHandle,videoFrame)
+    end
     
 end % loop over temporalSupport frames
 
+% Close the video object (if there is one)
+if ~isempty(outputMovieFileName)
+    close(videoOutHandle);
+end
+
 % For the last frame in memory, reshape into a 3D array which has the
-% dimensions of pixelsX, pixelsY, and wavelengths. This is an example frame
-% that we could send to Joe Rice to try out.
+% dimensions of pixelsX, pixelsY, and wavelengths. Save out this and its
+% corresponding wavelength support
 thisFrameSPD = reshape(thisFrameSPDVec, displayPixelResolution(1), displayPixelResolution(2), length(backgroundSPD));
+save(outputSPDMatrixFileName,'thisFrameSPD');
+save(outputSPDWavelengthSupportFileName,'wavelengthSupport');
